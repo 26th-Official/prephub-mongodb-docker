@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+    command: ["mongod", "--bind_ip", "0.0.0.0"]
+    volumes:
+      - mongodb_data:/data/db
+      - ./init:/docker-entrypoint-initdb.d
+    ports:
+      - "27018:27017"
+    networks:
+      - app-network
+  
+  mongo_express:
+    image: mongo-express
+    container_name: mongo_express
+    restart: always
+    ports:
+      - 18081:8081
+    environment:
+      WAIT_HOSTS: mongodb:27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_BASICAUTH_USERNAME: root
+      ME_CONFIG_BASICAUTH_PASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
+    networks:
+      - app-network
+
+  mongo-exporter:
+    image: bitnami/mongodb-exporter:latest
+    container_name: mongo-exporter
+    depends_on:
+      - mongodb
+    command:
+      - '--collector.dbstats'
+      - '--collector.diagnosticdata'
+      - '--collector.replicasetstatus'
+      - '--collector.topmetrics'
+      - '--collector.currentopmetrics'
+      - '--collector.collstats'
+      - '--collector.indexstats'
+    environment:
+      MONGODB_URI: "mongodb://root:example@mongodb:27017"
+    ports:
+      - 9216:9216
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 4210:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - app-network
+
+
+volumes:
+  mongodb_data:
+  grafana_data:
+
+networks:
+  app-network:
+    driver: bridge

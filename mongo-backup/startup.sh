@@ -4,7 +4,7 @@ echo "Starting MongoDB backup container..."
 
 # Send test email on startup
 echo "Sending test email to verify email configuration..."
-/backup/send_test_email.sh
+/usr/local/bin/send_test_email.sh
 
 if [ $? -eq 0 ]; then
     echo "Test email sent successfully!"

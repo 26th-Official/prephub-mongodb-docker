@@ -2,6 +2,20 @@
 
 echo "Starting MongoDB backup container..."
 
+# Create environment file for cron jobs
+echo "Creating environment file for cron..."
+cat > /backup/cron_env.sh << EOF
+export EMAIL_TO="$EMAIL_TO"
+export SMTP_SERVER="$SMTP_SERVER"
+export SMTP_USER="$SMTP_USER"
+export SMTP_PASS="$SMTP_PASS"
+export MONGO_HOST="$MONGO_HOST"
+export MONGO_PORT="$MONGO_PORT"
+export MONGO_USER="$MONGO_USER"
+export MONGO_PASS="$MONGO_PASS"
+export MONGO_AUTH_DB="$MONGO_AUTH_DB"
+EOF
+
 # Send test email on startup
 echo "Sending test email to verify email configuration..."
 /usr/local/bin/send_test_email.sh

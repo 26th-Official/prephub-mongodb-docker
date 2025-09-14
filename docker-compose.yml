@@ -32,6 +32,7 @@ services:
       - MONGO_USER=root
       - MONGO_PASS=example
       - MONGO_AUTH_DB=admin
+      - RCLONE_DRIVE=docker
     volumes:
       - ./mongo-backups:/backup
     depends_on:

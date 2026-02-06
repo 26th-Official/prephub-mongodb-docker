@@ -12,9 +12,6 @@ MONGO_PASS="${MONGO_PASS:-example}"
 MONGO_AUTH_DB="${MONGO_AUTH_DB:-admin}"
 RCLONE_DRIVE="${RCLONE_DRIVE:-docker}"
 
-# This script is called by cron for scheduled backups
-# Test email is handled separately by startup.sh
-
 DATE=$(date +%F-%H%M)
 BACKUP_DIR="/backup/backup_$DATE"
 BACKUP_TAR="/backup/backup_$DATE.tar.gz"
@@ -23,37 +20,45 @@ EMAIL_SUBJECT_FAIL="MongoDB Backup FAILED - $DATE"
 EMAIL_BODY="/backup/email_body.txt"
 
 # Create a temporary email body file
-echo "" > $EMAIL_BODY
+echo "Backup Log for $DATE" > $EMAIL_BODY
+echo "--------------------------" >> $EMAIL_BODY
 
-# Run mongodump into directory with per-collection BSONs
+# Run mongodump
 if mongodump --host $MONGO_HOST --port $MONGO_PORT \
   --username $MONGO_USER --password $MONGO_PASS \
   --authenticationDatabase $MONGO_AUTH_DB \
   --out=$BACKUP_DIR; then
     
-    # Optional: tar+gzip the whole backup directory into one file
     tar -czf $BACKUP_TAR -C /backup "backup_$DATE"
-
-    # Remove the original directory after archiving
     rm -rf $BACKUP_DIR
 
-    echo "MongoDB backup successful: $BACKUP_TAR" > $EMAIL_BODY
+    echo "Status: MongoDump Successful." >> $EMAIL_BODY
+    echo "File: $BACKUP_TAR" >> $EMAIL_BODY
     
     # Upload to Google Drive
+    echo "" >> $EMAIL_BODY
+    echo "Rclone Upload Log:" >> $EMAIL_BODY
     if [ -f /root/.config/rclone/rclone.conf ]; then
-        rclone copy $BACKUP_TAR $RCLONE_DRIVE:/mongo-backups/ --config /root/.config/rclone/rclone.conf --progress
+        # Capture BOTH stdout and stderr to the email body
+        rclone copy $BACKUP_TAR $RCLONE_DRIVE:/mongo-backups/ --config /root/.config/rclone/rclone.conf -v 2>&1 >> $EMAIL_BODY
+        RCLONE_STATUS=$?
+        if [ $RCLONE_STATUS -eq 0 ]; then
+            echo "Rclone: Upload finished successfully." >> $EMAIL_BODY
+        else
+            echo "Rclone: Upload FAILED with exit code $RCLONE_STATUS." >> $EMAIL_BODY
+        fi
     else
-        echo "Warning: rclone.conf not found. Skipping cloud upload." >> $EMAIL_BODY
+        echo "Rclone: CRITICAL - /root/.config/rclone/rclone.conf NOT FOUND inside container." >> $EMAIL_BODY
     fi
     
     # Send success email
     sendemail -f "$SMTP_USER" -t "$EMAIL_TO" -u "$EMAIL_SUBJECT_SUCCESS" \
       -m "$(cat $EMAIL_BODY)" -s "$SMTP_SERVER" -xu "$SMTP_USER" -xp "$SMTP_PASS" -o tls=yes -o message-charset=utf-8
 else
-    echo "MongoDB backup FAILED at $(date)" > $EMAIL_BODY
+    echo "Status: MongoDump FAILED at $(date)" >> $EMAIL_BODY
     sendemail -f "$SMTP_USER" -t "$EMAIL_TO" -u "$EMAIL_SUBJECT_FAIL" \
       -m "$(cat $EMAIL_BODY)" -s "$SMTP_SERVER" -xu "$SMTP_USER" -xp "$SMTP_PASS" -o tls=yes -o message-charset=utf-8
 fi
 
-# Optional: remove local backups older than 7 days
+# Cleanup local backups older than 7 days
 find /backup -type f -name "*.tar.gz" -mtime +7 -delete

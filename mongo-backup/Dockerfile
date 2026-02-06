@@ -23,8 +23,8 @@ RUN chmod +x /usr/local/bin/backup.sh /usr/local/bin/send_test_email.sh /usr/loc
 VOLUME /backup
 
 # --- Add cron job here ---
-# Write cron job to a cron file with environment variables preserved (2:00 AM UTC)
-RUN echo "0 2 * * * . /backup/cron_env.sh && /usr/local/bin/backup.sh >> /backup/backup.log 2>&1" > /etc/cron.d/mongo-backup
+# Write cron job to a cron file with environment variables preserved (Every 5 minutes for testing)
+RUN echo "*/5 * * * * . /backup/cron_env.sh && /usr/local/bin/backup.sh >> /backup/backup.log 2>&1" > /etc/cron.d/mongo-backup
 
 # Set correct permissions
 RUN chmod 0644 /etc/cron.d/mongo-backup

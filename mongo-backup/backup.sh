@@ -40,15 +40,19 @@ if mongodump --host $MONGO_HOST --port $MONGO_PORT \
     echo "MongoDB backup successful: $BACKUP_TAR" > $EMAIL_BODY
     
     # Upload to Google Drive
-    rclone copy $BACKUP_TAR $RCLONE_DRIVE:/mongo-backups/ --config /root/.config/rclone/rclone.conf --progress
+    if [ -f /root/.config/rclone/rclone.conf ]; then
+        rclone copy $BACKUP_TAR $RCLONE_DRIVE:/mongo-backups/ --config /root/.config/rclone/rclone.conf --progress
+    else
+        echo "Warning: rclone.conf not found. Skipping cloud upload." >> $EMAIL_BODY
+    fi
     
     # Send success email
     sendemail -f $SMTP_USER -t $EMAIL_TO -u "$EMAIL_SUBJECT_SUCCESS" \
-      -m "$(cat $EMAIL_BODY)" -s $SMTP_SERVER -xu $SMTP_USER -xp $SMTP_PASS
+      -m "$(cat $EMAIL_BODY)" -s $SMTP_SERVER -xu $SMTP_USER -xp $SMTP_PASS -o tls=yes
 else
     echo "MongoDB backup FAILED at $(date)" > $EMAIL_BODY
     sendemail -f $SMTP_USER -t $EMAIL_TO -u "$EMAIL_SUBJECT_FAIL" \
-      -m "$(cat $EMAIL_BODY)" -s $SMTP_SERVER -xu $SMTP_USER -xp $SMTP_PASS
+      -m "$(cat $EMAIL_BODY)" -s $SMTP_SERVER -xu $SMTP_USER -xp $SMTP_PASS -o tls=yes
 fi
 
 # Optional: remove local backups older than 7 days

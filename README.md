@@ -53,5 +53,3 @@ edit the new docker-compose with the credentials from the `old-docker.yml` to `d
 `docker-compose exec mongo-backup bash -c "source /backup/cron_env.sh && /usr/local/bin/backup.sh"`
 
 ---
-
-Hmmm...

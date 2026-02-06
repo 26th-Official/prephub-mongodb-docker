@@ -10,10 +10,12 @@ COPY backup.sh /usr/local/bin/backup.sh
 COPY send_test_email.sh /usr/local/bin/send_test_email.sh
 COPY startup.sh /usr/local/bin/startup.sh
 
-# Create rclone config directories and copy config file
-RUN mkdir -p /root/.config/rclone /data/db/.config/rclone
-COPY rclone.conf /root/.config/rclone/rclone.conf
-COPY rclone.conf /data/db/.config/rclone/rclone.conf
+# Create rclone config directories
+RUN mkdir -p /root/.config/rclone 
+
+# Copy config if it exists, otherwise just touch it
+COPY rclone* /root/.config/rclone/
+RUN if [ -f /root/.config/rclone/rclone-sample.conf ] && [ ! -f /root/.config/rclone/rclone.conf ]; then cp /root/.config/rclone/rclone-sample.conf /root/.config/rclone/rclone.conf; fi
 
 # Make scripts executable
 RUN chmod +x /usr/local/bin/backup.sh /usr/local/bin/send_test_email.sh /usr/local/bin/startup.sh

@@ -1,4 +1,5 @@
-mongo-backup/rclone.conf
+backup-engine/rclone.conf
+backup-storage/
 node_modules/
 .env
 *.log

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Starting MongoDB Restore Process..."
+echo "Starting Database Restore Process (Database Engine)..."
 
 # Find the backup file
 BACKUP_FILE=$(ls /backups/*.tar.gz 2>/dev/null | head -n 1)

@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
     mongodb:
         build:
-            context: ./mongodb
+            context: ./database-engine
             dockerfile: Dockerfile
         container_name: mongodb
         restart: always
@@ -20,12 +18,13 @@ services:
 
     mongo-backup:
         build:
-            context: ./mongo-backup
+            context: ./backup-engine
             dockerfile: Dockerfile
+        container_name: mongo-backup
         restart: always
         environment:
             - EMAIL_TO=hsairam261@gmail.com
-            - SMTP_SERVER=smtp.gmail.com
+            - SMTP_SERVER=smtp.gmail.com:587
             - SMTP_USER=26thofficial.creator@gmail.com
             - SMTP_PASS=yaubfifsjunosrjv
             - MONGO_HOST=mongodb
@@ -35,7 +34,7 @@ services:
             - MONGO_AUTH_DB=admin
             - RCLONE_DRIVE=docker
         volumes:
-            - ./backups:/backup
+            - ./backup-storage:/backup
         depends_on:
             - mongodb
         networks:

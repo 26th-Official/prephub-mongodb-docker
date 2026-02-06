@@ -17,4 +17,4 @@ echo "Using SMTP server: $SMTP_SERVER"
 
 # Send the test email
 sendemail -f "$SMTP_USER" -t "$EMAIL_TO" -u "MongoDB Backup Email Test" \
-  -m "$(cat $EMAIL_BODY)" -s "$SMTP_SERVER" -xu "$SMTP_USER" -xp "$SMTP_PASS" -o tls=yes
+  -m "$(cat $EMAIL_BODY)" -s "$SMTP_SERVER" -xu "$SMTP_USER" -xp "$SMTP_PASS" -o tls=yes -o message-charset=utf-8

@@ -47,12 +47,12 @@ if mongodump --host $MONGO_HOST --port $MONGO_PORT \
     fi
     
     # Send success email
-    sendemail -f $SMTP_USER -t $EMAIL_TO -u "$EMAIL_SUBJECT_SUCCESS" \
-      -m "$(cat $EMAIL_BODY)" -s $SMTP_SERVER -xu $SMTP_USER -xp $SMTP_PASS -o tls=yes
+    sendemail -f "$SMTP_USER" -t "$EMAIL_TO" -u "$EMAIL_SUBJECT_SUCCESS" \
+      -m "$(cat $EMAIL_BODY)" -s "$SMTP_SERVER" -xu "$SMTP_USER" -xp "$SMTP_PASS" -o tls=yes -o message-charset=utf-8
 else
     echo "MongoDB backup FAILED at $(date)" > $EMAIL_BODY
-    sendemail -f $SMTP_USER -t $EMAIL_TO -u "$EMAIL_SUBJECT_FAIL" \
-      -m "$(cat $EMAIL_BODY)" -s $SMTP_SERVER -xu $SMTP_USER -xp $SMTP_PASS -o tls=yes
+    sendemail -f "$SMTP_USER" -t "$EMAIL_TO" -u "$EMAIL_SUBJECT_FAIL" \
+      -m "$(cat $EMAIL_BODY)" -s "$SMTP_SERVER" -xu "$SMTP_USER" -xp "$SMTP_PASS" -o tls=yes -o message-charset=utf-8
 fi
 
 # Optional: remove local backups older than 7 days

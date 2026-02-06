@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting MongoDB backup container..."
+echo "Starting Backup Engine container..."
 
 # Create environment file for cron jobs
 echo "Creating environment file for cron..."
